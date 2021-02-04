@@ -14,5 +14,12 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
+Imports:
+  R6,
+  data.table,
+  digest,
+  future,
+  future.apply,
+  origami
 Suggests: 
     testthat
