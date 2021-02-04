@@ -43,13 +43,14 @@ t3s_Simulation <- R6Class("t3s_Simulation",
 
                             },
                             run_step = function(){
+                              private$.step <- self$step + 1
                               private$.last_sample <- self$sample()
                               private$.last_estimate <- self$estimator$estimate()
                               self$reporter$report()
                             },
                             run = function(){
                               while(self$step<self$n_steps){
-                                private$.step <- self$step + 1
+                                
 
                                 if(self$verbose){
                                   msg <- sprintf("Running %s step %d of %d\n",
