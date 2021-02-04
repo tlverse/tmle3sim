@@ -25,7 +25,7 @@ format_results <- function(results, invert = TRUE, combine = TRUE,
       origami::combine_results,
       c(
         list(results = results),
-        .combine_control
+        combine_control
       )
     )
   }
