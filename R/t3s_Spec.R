@@ -11,15 +11,15 @@ t3s_Spec <- R6Class("t3s_Spec",
                       create = function(...){
                         # start with specced arglist
                         args <- self$other_args
-                        
+
                         # add any new args from create (e.g. seed)
                         new_args = list(...)
                         args[names(new_args)]=new_args[names(new_args)]
-                        
+
                         # add in params
                         args$params <- self$params
                         do.call(self$obj_class$new, args)
-                        
+
                       }
                     ),
                     active = list(
@@ -39,5 +39,6 @@ t3s_Spec <- R6Class("t3s_Spec",
                       .other_args = NULL
                     )
 )
-                        
+
+#' @export
 make_spec <- t3s_Spec$new
