@@ -32,8 +32,10 @@ run_sim <- function(sim_spec, est_specs, reporter, seed = NULL,
                       log_file)
 
       if(!is.null(stdout)){
-        writeLines(log_message, stdout)
-        if(isOpen(stdout)) flush(stdout)
+        logfile <- file("simlog.txt","a", blocking = FALSE)
+        writeLines(log_message, logfile)
+        flush(logfile)
+        close(logfile)
       } else{
         message(log_message)
       }
@@ -98,15 +100,13 @@ run_sims <- function(sim_specs,
 
   all_runs <- expand.grid(spec_index = seq_along(sim_specs), run = 1:n_runs)
 
-  logfile <- file("simlog.txt","w+", blocking = FALSE)
-
   all_results <- future_lapply(seq_len(nrow(all_runs)), function(run_index, stdout) {
     spec_index <- all_runs[run_index, "spec_index"]
     sim_spec <- sim_specs[[spec_index]]
 
     run_sim(sim_spec, est_specs, reporter,
             save_individual = save_individual, log = log, stdout = stdout)
-  }, stdout=logfile, future.seed = TRUE, future.stdout = FALSE)
+  }, stdout="simlog.txt", future.seed = TRUE, future.stdout = FALSE)
 
   results <- do.call(c, all_results)
 
