@@ -12,6 +12,14 @@ t3s_Reporter <- R6Class("t3s_Reporter",
         params$report_uuids <- TRUE
       }
 
+      if(is.null(params$log)){
+        params$log <- TRUE
+      }
+
+      if(params$log && is.null(params$log_path)){
+          params$log_path <- "Logs"
+      }
+
       if (is.null(params$path)) {
         params$path <- "Results"
       }

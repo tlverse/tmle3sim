@@ -1,0 +1,51 @@
+ERROR [2021-04-28 21:44:16] [ERROR] this est fails
+
+Compact call stack:
+  1 run_sim(sim_spec, est_specs, reporter)
+  2 run_sims.R#4: lapply(est_specs, function(est_spec) {
+  3 run_sims.R#12: try({
+  4 run_sims.R#13: sim_copy$run()
+  5 t3s_Simulation.R#74: tryLog({
+  6 t3s_Simulation.R#87: self$run_step()
+  7 t3s_Simulation.R#48: self$estimator$estimate()
+  8 t3s_Estimator_Functional.R#17: do.call(self$est_fun, est_fun_args)
+  9 #3: stop("this est fails")
+
+Full call stack:
+  1 run_sim(sim_spec, est_specs, reporter)
+  2 run_sims.R#4: lapply(est_specs, function(est_spec) {
+        sim_copy <- simul
+  3 FUN(X[[i]], ...)
+  4 run_sims.R#12: try({
+        sim_copy$run()
+    }, silent = TRUE)
+  5 tryCatch(expr, error = function(e) {
+        call <- conditionCall(e)
+        
+  6 tryCatchList(expr, classes, parentenv, handlers)
+  7 tryCatchOne(expr, names, parentenv, handlers[[1]])
+  8 doTryCatch(return(expr), name, parentenv, handler)
+  9 run_sims.R#13: sim_copy$run()
+  10 t3s_Simulation.R#74: tryLog({
+        while (self$step < self$n_steps) {
+     
+  11 tryCatchLog(expr = expr, execution.context.msg = execution.context.msg, write.
+  12 tryCatch(withCallingHandlers(expr, condition = cond.handler), ..., finally = f
+  13 tryCatchList(expr, classes, parentenv, handlers)
+  14 tryCatchOne(expr, names, parentenv, handlers[[1]])
+  15 doTryCatch(return(expr), name, parentenv, handler)
+  16 withCallingHandlers(expr, condition = cond.handler)
+  17 t3s_Simulation.R#87: self$run_step()
+  18 t3s_Simulation.R#48: self$estimator$estimate()
+  19 t3s_Estimator_Functional.R#17: do.call(self$est_fun, est_fun_args)
+  20 (function (simulation, ...) 
+    {
+        stop("this est fails")
+    })(name 
+  21 #3: stop("this est fails")
+  22 .handleSimpleError(function (c) 
+    {
+        log.message <- c$message
+      
+
+

@@ -49,22 +49,52 @@ t3s_Simulation <- R6Class("t3s_Simulation",
       self$reporter$report()
     },
     run = function() {
-      while (self$step < self$n_steps) {
-        if (self$verbose) {
-          msg <- sprintf(
-            "Running %s step %d of %d\n",
-            self$name,
-            self$step,
-            self$n_steps
-          )
-          message(msg)
+      if(self$reporter$params$log){
+        log_path <- self$reporter$params$log_path
+        if (!dir.exists(log_path)) {
+          dir.create(log_path)
         }
 
+        log_file <- sprintf(
+          "log_%s_%s_%s.txt",
+          self$uuid,
+          self$estimator$uuid,
+          self$seed
+        )
 
-        self$run_step()
+        message(sprintf("Logging pid: %s sim: %s est: %s seed: %s @ %s",
+                Sys.getpid(),
+                self$name,
+                self$estimator$name,
+                self$seed,
+                log_file))
+        sink(file.path(log_path, log_file))
       }
 
-      self$reporter$make_final()
+      result <- tryLog({
+        while (self$step < self$n_steps) {
+          if (self$verbose) {
+            msg <- sprintf(
+              "Running %s step %d of %d\n",
+              self$name,
+              self$step,
+              self$n_steps
+            )
+            message(msg)
+          }
+
+
+          self$run_step()
+        }
+
+        self$reporter$make_final()
+      })
+
+      if(self$reporter$params$log){
+        sink()
+      }
+
+      return(result)
     },
     print = function() {
       header <- sprintf("A %s simulation\n", self$name)

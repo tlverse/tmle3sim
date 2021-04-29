@@ -9,7 +9,21 @@ run_sim <- function(sim_spec, est_specs, reporter, seed = NULL,
     sim_copy$reporter <- reporter$clone()
 
     # run it
-    sim_copy$run()
+    result <- try({
+      sim_copy$run()
+    }, silent = TRUE)
+
+    if(inherits(result, "try-error")){
+      message(sprintf("Error in sim: %s est: %s seed: %s",
+              sim_copy$name,
+              sim_copy$estimator$name,
+              sim_copy$seed))
+
+      msg <- attr(result,"condition")$message
+      message(msg)
+
+      return(NULL)
+    }
 
     # save and return results
     if (save_individual) {
@@ -54,7 +68,7 @@ run_sims <- function(sim_specs,
     sim_spec <- sim_specs[[spec_index]]
 
     run_sim(sim_spec, est_specs, reporter, save_individual = save_individual)
-  }, future.seed = TRUE)
+  }, future.seed = TRUE, future.stdout = NA)
 
   results <- do.call(c, all_results)
 

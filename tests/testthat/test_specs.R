@@ -27,10 +27,12 @@ sim_spec <- make_spec(t3s_Simulation_Functional,
 example_est <- function(simulation, ...) {
   data <- simulation$last_sample
   result <- list(
+
     xbar = mean(data$x),
     sigma = sd(data$x)
   )
 
+  print(c("mean",result))
   return(result)
 }
 
@@ -41,6 +43,7 @@ example_est2 <- function(simulation, ...) {
     sigma = IQR(data$x)
   )
 
+  print(c("median",result))
   return(result)
 }
 
@@ -54,12 +57,18 @@ est_spec2 <- make_spec(t3s_Estimator_Functional,
   est_fun = example_est2
 )
 
+est_error <- make_spec(t3s_Estimator_Functional,
+                       params = list(name = "error"),
+                       est_fun = function(simulation, ...){stop("this est fails")}
+)
+
 
 sim_specs <- sim_spec
-est_specs <- list(est_spec1, est_spec2)
+est_specs <- list(est_spec1, est_spec2, est_error)
 reporter <- t3s_Reporter$new()
 
 plan(multicore, workers = 2)
+results <- run_sim(sim_spec, est_specs, reporter)
 results <- run_sims(sim_spec, est_specs, reporter, n_runs = 1e3)
 results_df <- rbindlist(results)
 results_sum <- results_df[, list(mean(xbar), sd(xbar)), by = list(estimator_name)]
