@@ -1,6 +1,7 @@
 #' @import data.table
 #' @importFrom digest digest
 #' @importFrom R6 R6Class
+#' @importFrom tryCatchLog tryLog
 #' @export
 t3s_Simulation <- R6Class("t3s_Simulation",
   public = list(
