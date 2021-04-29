@@ -37,6 +37,7 @@ run_sim <- function(sim_spec, est_specs, reporter, seed = NULL,
         message(log_message)
       }
       sink(file.path(log_path, log_file))
+      message(log_message)
     }
 
     # run it
