@@ -93,3 +93,14 @@ plot.t3s.ps <- function(perf_summary, ...) {
 
   print(ps_plot)
 }
+
+#' @export
+missing_results <- function(result_path="Results", log_path = "Logs"){
+  results <- dir("Results")
+  logs <- dir("Logs")
+  expected_results <- gsub("log","results",logs)
+  expected_results <- gsub("txt","rdata",expected_results)
+  missing_results <- setdiff(expected_results, results)
+
+  return(missing_results)
+}

@@ -1,6 +1,6 @@
 #' @importFrom tryCatchLog tryLog
 run_sim <- function(sim_spec, est_specs, reporter, seed = NULL,
-                    save_individual = TRUE, log = TRUE) {
+                    save_individual = TRUE, log = TRUE, stdout=NULL) {
   simulation <- sim_spec$create(seed = seed)
   all_results <- lapply(est_specs, function(est_spec) {
 
@@ -23,12 +23,19 @@ run_sim <- function(sim_spec, est_specs, reporter, seed = NULL,
         sim_copy$seed
       )
 
-      message(sprintf("Logging pid: %s sim: %s est: %s seed: %s @ %s",
+      log_message <- sprintf("[%s] Running pid: %s sim: %s est: %s seed: %s log: %s",
+                      Sys.time(),
                       Sys.getpid(),
                       sim_copy$name,
                       sim_copy$estimator$name,
                       sim_copy$seed,
-                      log_file))
+                      log_file)
+
+      if(!is.null(stdout)){
+        writeLines(log_message, stdout)
+      } else{
+        message(log_message)
+      }
       sink(file.path(log_path, log_file))
     }
 
@@ -89,12 +96,13 @@ run_sims <- function(sim_specs,
 
   all_runs <- expand.grid(spec_index = seq_along(sim_specs), run = 1:n_runs)
 
-  all_results <- future_lapply(seq_len(nrow(all_runs)), function(run_index) {
+  all_results <- future_lapply(seq_len(nrow(all_runs)), function(run_index, stdout) {
     spec_index <- all_runs[run_index, "spec_index"]
     sim_spec <- sim_specs[[spec_index]]
 
-    run_sim(sim_spec, est_specs, reporter, save_individual = save_individual)
-  }, future.seed = TRUE)
+    run_sim(sim_spec, est_specs, reporter,
+            save_individual = save_individual, log = log, stdout = stdout)
+  }, stdout=stdout(), future.seed = TRUE, future.stdout = FALSE)
 
   results <- do.call(c, all_results)
 
