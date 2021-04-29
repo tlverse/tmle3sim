@@ -1,5 +1,6 @@
+#' @importFrom tryCatchLog tryLog
 run_sim <- function(sim_spec, est_specs, reporter, seed = NULL,
-                    save_individual = TRUE) {
+                    save_individual = TRUE, log = TRUE) {
   simulation <- sim_spec$create(seed = seed)
   all_results <- lapply(est_specs, function(est_spec) {
 
@@ -8,29 +9,51 @@ run_sim <- function(sim_spec, est_specs, reporter, seed = NULL,
     sim_copy$estimator <- est_spec$create()
     sim_copy$reporter <- reporter$clone()
 
+    if(log){
+      #TODO: make this a package option or something
+      log_path <- "Logs"
+      if (!dir.exists(log_path)) {
+        dir.create(log_path)
+      }
+
+      log_file <- sprintf(
+        "log_%s_%s_%s.txt",
+        sim_copy$uuid,
+        sim_copy$estimator$uuid,
+        sim_copy$seed
+      )
+
+      message(sprintf("Logging pid: %s sim: %s est: %s seed: %s @ %s",
+                      Sys.getpid(),
+                      sim_copy$name,
+                      sim_copy$estimator$name,
+                      sim_copy$seed,
+                      log_file))
+      sink(file.path(log_path, log_file))
+    }
+
     # run it
-    result <- try({
+    result <- tryLog({
       sim_copy$run()
-    }, silent = TRUE)
+
+      # save and return results
+      if (save_individual) {
+        sim_copy$reporter$save()
+      }
+
+      return(sim_copy$reporter$final_report)
+    })
+
 
     if(inherits(result, "try-error")){
-      message(sprintf("Error in sim: %s est: %s seed: %s",
-              sim_copy$name,
-              sim_copy$estimator$name,
-              sim_copy$seed))
-
-      msg <- attr(result,"condition")$message
-      message(msg)
-
-      return(NULL)
+      result <- NULL
     }
 
-    # save and return results
-    if (save_individual) {
-      sim_copy$reporter$save()
+    if(log){
+      sink()
     }
 
-    return(sim_copy$reporter$final_report)
+
   })
 
   if (length(est_specs) == 1) {
@@ -46,7 +69,8 @@ run_sims <- function(sim_specs,
                      est_specs,
                      reporter = NULL,
                      n_runs = 100,
-                     save_individual = TRUE) {
+                     save_individual = TRUE,
+                     log = TRUE) {
 
   # listify singular specs
   if (inherits(sim_specs, "t3s_Spec")) {

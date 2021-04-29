@@ -1,7 +1,6 @@
 #' @import data.table
 #' @importFrom digest digest
 #' @importFrom R6 R6Class
-#' @importFrom tryCatchLog tryLog
 #' @export
 t3s_Simulation <- R6Class("t3s_Simulation",
   public = list(
@@ -50,52 +49,23 @@ t3s_Simulation <- R6Class("t3s_Simulation",
       self$reporter$report()
     },
     run = function() {
-      if(self$reporter$params$log){
-        log_path <- self$reporter$params$log_path
-        if (!dir.exists(log_path)) {
-          dir.create(log_path)
+
+      while (self$step < self$n_steps) {
+        if (self$verbose) {
+          msg <- sprintf(
+            "Running %s step %d of %d\n",
+            self$name,
+            self$step,
+            self$n_steps
+          )
+          message(msg)
         }
 
-        log_file <- sprintf(
-          "log_%s_%s_%s.txt",
-          self$uuid,
-          self$estimator$uuid,
-          self$seed
-        )
 
-        message(sprintf("Logging pid: %s sim: %s est: %s seed: %s @ %s",
-                Sys.getpid(),
-                self$name,
-                self$estimator$name,
-                self$seed,
-                log_file))
-        sink(file.path(log_path, log_file))
+        self$run_step()
       }
 
-      result <- tryLog({
-        while (self$step < self$n_steps) {
-          if (self$verbose) {
-            msg <- sprintf(
-              "Running %s step %d of %d\n",
-              self$name,
-              self$step,
-              self$n_steps
-            )
-            message(msg)
-          }
-
-
-          self$run_step()
-        }
-
-        self$reporter$make_final()
-      })
-
-      if(self$reporter$params$log){
-        sink()
-      }
-
-      return(result)
+      self$reporter$make_final()
     },
     print = function() {
       header <- sprintf("A %s simulation\n", self$name)

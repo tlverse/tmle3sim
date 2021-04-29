@@ -68,7 +68,7 @@ est_specs <- list(est_spec1, est_spec2, est_error)
 reporter <- t3s_Reporter$new()
 
 plan(multicore, workers = 2)
-results <- run_sim(sim_spec, est_specs, reporter)
+# results <- run_sim(sim_spec, est_specs, reporter)
 results <- run_sims(sim_spec, est_specs, reporter, n_runs = 1e3)
 results_df <- rbindlist(results)
 results_sum <- results_df[, list(mean(xbar), sd(xbar)), by = list(estimator_name)]
