@@ -41,7 +41,7 @@ run_sim <- function(sim_spec, est_specs, reporter, seed = NULL,
         sim_copy$reporter$save()
       }
 
-      return(sim_copy$reporter$final_report)
+      sim_copy$reporter$final_report
     })
 
 
@@ -53,6 +53,8 @@ run_sim <- function(sim_spec, est_specs, reporter, seed = NULL,
       sink()
     }
 
+
+    return(result)
 
   })
 
@@ -92,7 +94,7 @@ run_sims <- function(sim_specs,
     sim_spec <- sim_specs[[spec_index]]
 
     run_sim(sim_spec, est_specs, reporter, save_individual = save_individual)
-  }, future.seed = TRUE, future.stdout = NA)
+  }, future.seed = TRUE)
 
   results <- do.call(c, all_results)
 
