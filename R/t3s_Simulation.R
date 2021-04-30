@@ -48,7 +48,7 @@ t3s_Simulation <- R6Class("t3s_Simulation",
       self$reporter$report()
     },
     run = function() {
-
+      private$.start_time <- proc.time()
       while (self$step < self$n_steps) {
         if (getOption("tmle3sim.verbose")) {
           msg <- sprintf(
@@ -64,6 +64,7 @@ t3s_Simulation <- R6Class("t3s_Simulation",
         self$run_step()
       }
 
+      private$.runtime <- (proc.time()-private$.start_time)[[3]]
       self$reporter$make_final()
     },
     print = function() {
@@ -122,6 +123,9 @@ t3s_Simulation <- R6Class("t3s_Simulation",
     last_estimate = function() {
       return(private$.last_estimate)
     },
+    runtime = function() {
+      return(private$.runtime)
+    },
     key = function(){
       paste(self$uuid,
             self$estimator$uuid,
@@ -132,6 +136,8 @@ t3s_Simulation <- R6Class("t3s_Simulation",
   private = list(
     .params = NULL,
     .estimator = NULL,
+    .start_time = NULL,
+    .runtime = NULL,
     .reporter = NULL,
     .seed = NULL,
     .step = NULL,

@@ -51,6 +51,7 @@ t3s_Reporter <- R6Class("t3s_Reporter",
         sp_dt$estimator_uuid <- self$simulation$estimator$uuid
       }
 
+      sp_dt$runtime <- self$simulation$runtime
       sp_dt$seed <- self$simulation$seed
 
       combined <- cbind(sp_dt, combined)
