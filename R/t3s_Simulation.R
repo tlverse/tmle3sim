@@ -6,7 +6,7 @@ t3s_Simulation <- R6Class("t3s_Simulation",
   public = list(
     initialize = function(params = NULL,
                           estimator = NULL, reporter = NULL,
-                          seed = NULL, verbose = FALSE,
+                          seed = NULL,
                           ...) {
 
       # add default parameters if missing
@@ -30,7 +30,6 @@ t3s_Simulation <- R6Class("t3s_Simulation",
       private$.seed <- seed
       set.seed(seed)
 
-      private$.verbose <- verbose
 
       # register simulation with other components
       estimator$simulation <- self
@@ -51,7 +50,7 @@ t3s_Simulation <- R6Class("t3s_Simulation",
     run = function() {
 
       while (self$step < self$n_steps) {
-        if (self$verbose) {
+        if (getOption("tmle3sim.verbose")) {
           msg <- sprintf(
             "Running %s step %d of %d\n",
             self$name,
@@ -111,9 +110,6 @@ t3s_Simulation <- R6Class("t3s_Simulation",
     n_steps = function() {
       return(private$.params$n_steps)
     },
-    verbose = function() {
-      return(private$.verbose)
-    },
     seed = function() {
       return(private$.seed)
     },
@@ -125,6 +121,12 @@ t3s_Simulation <- R6Class("t3s_Simulation",
     },
     last_estimate = function() {
       return(private$.last_estimate)
+    },
+    key = function(){
+      paste(self$uuid,
+            self$estimator$uuid,
+            self$seed,
+            sep="_")
     }
   ),
   private = list(
@@ -133,7 +135,6 @@ t3s_Simulation <- R6Class("t3s_Simulation",
     .reporter = NULL,
     .seed = NULL,
     .step = NULL,
-    .verbose = NULL,
     .uuid = NULL,
     .last_sample = NULL,
     .last_estimate = NULL

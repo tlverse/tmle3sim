@@ -98,10 +98,8 @@ t3s_Reporter <- R6Class("t3s_Reporter",
     },
     filename = function() {
       filename <- sprintf(
-        "results_%s_%s_%s.rdata",
-        self$simulation$uuid,
-        self$simulation$estimator$uuid,
-        self$simulation$seed
+        "results_%s.rdata",
+        self$simulation$key
       )
 
       return(filename)

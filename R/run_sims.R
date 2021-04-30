@@ -1,6 +1,5 @@
-#' @importFrom tryCatchLog tryLog
 run_sim <- function(sim_spec, est_specs, reporter, seed = NULL,
-                    save_individual = TRUE, log = TRUE, stdout=NULL) {
+                    save_individual = TRUE, sim_log = FALSE, root_log="ROOT") {
   simulation <- sim_spec$create(seed = seed)
   all_results <- lapply(est_specs, function(est_spec) {
 
@@ -9,7 +8,7 @@ run_sim <- function(sim_spec, est_specs, reporter, seed = NULL,
     sim_copy$estimator <- est_spec$create()
     sim_copy$reporter <- reporter$clone()
 
-    if(log){
+    if(sim_log){
       #TODO: make this a package option or something
       log_path <- "Logs"
       if (!dir.exists(log_path)) {
@@ -17,53 +16,45 @@ run_sim <- function(sim_spec, est_specs, reporter, seed = NULL,
       }
 
       log_file <- sprintf(
-        "log_%s_%s_%s.txt",
-        sim_copy$uuid,
-        sim_copy$estimator$uuid,
-        sim_copy$seed
+        "log_%s.txt",
+        sim_copy$key
       )
 
-      log_message <- sprintf("[%s] Running pid: %s sim: %s est: %s seed: %s log: %s",
-                      Sys.time(),
-                      Sys.getpid(),
-                      sim_copy$name,
-                      sim_copy$estimator$name,
-                      sim_copy$seed,
-                      log_file)
+      log_file <- file.path(log_path, log_file)
 
-      if(!is.null(stdout)){
-        logfile <- file("simlog.txt","a", blocking = FALSE)
-        writeLines(log_message, logfile)
-        flush(logfile)
-        close(logfile)
-      } else{
-        message(log_message)
-      }
-      sink(file.path(log_path, log_file))
-      message(log_message)
+      flog.logger(sim_copy$key, INFO, appender=appender.file(log_file))
+    } else {
+      log_file = "console"
+      flog.logger(sim_copy$key, INFO)
     }
 
-    # run it
-    result <- tryLog({
-      sim_copy$run()
+    log_message <- sprintf("[%s] Running pid: %s sim: %s est: %s seed: %s log: %s",
+                           Sys.time(),
+                           Sys.getpid(),
+                           sim_copy$name,
+                           sim_copy$estimator$name,
+                           sim_copy$seed,
+                           log_file)
+    flog.info(log_message, name = root_log)
+    if(sim_log){
+      # log to sim specific file too
+      flog.info(log_message, name = sim_copy$key)
+    }
 
+    # run the simulation with logging
+    result <- try_with_logs(sim_copy$run(), context = sim_copy$key)
+
+
+    if(inherits(result, "try-error")){
+      result <- NULL
+    } else {
       # save and return results
       if (save_individual) {
         sim_copy$reporter$save()
       }
 
       sim_copy$reporter$final_report
-    })
-
-
-    if(inherits(result, "try-error")){
-      result <- NULL
     }
-
-    if(log){
-      sink()
-    }
-
 
     return(result)
 
@@ -99,14 +90,17 @@ run_sims <- function(sim_specs,
   }
 
   all_runs <- expand.grid(spec_index = seq_along(sim_specs), run = 1:n_runs)
-
-  all_results <- future_lapply(seq_len(nrow(all_runs)), function(run_index, stdout) {
+  root_logfile <- "simlog.txt"
+  if(file.exists(root_logfile)){
+    file.remove(root_logfile)
+  }
+  all_results <- future_lapply(seq_len(nrow(all_runs)), function(run_index, root_logfile) {
     spec_index <- all_runs[run_index, "spec_index"]
     sim_spec <- sim_specs[[spec_index]]
-
+    flog.logger(root_logfile, INFO, appender=appender.file(root_logfile))
     run_sim(sim_spec, est_specs, reporter,
-            save_individual = save_individual, log = log, stdout = stdout)
-  }, stdout="simlog.txt", future.seed = TRUE, future.stdout = FALSE)
+            save_individual = save_individual, sim_log = TRUE, root_log = root_logfile)
+  }, root_logfile = root_logfile, future.seed = TRUE, future.stdout = FALSE)
 
   results <- do.call(c, all_results)
 

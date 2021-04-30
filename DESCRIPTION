@@ -21,6 +21,8 @@ Imports:
   future,
   future.apply,
   origami,
-  tryCatchLog
+  futile.logger,
+  tryCatchLog,
+  fs
 Suggests: 
     testthat
